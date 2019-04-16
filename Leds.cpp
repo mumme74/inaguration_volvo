@@ -57,6 +57,19 @@ void Segment::setHalted(bool halt)
   m_halted = halt;
 }
 
+CRGB *Segment::operator[] (uint16_t idx) const
+{
+  uint16_t led = 0;
+  for(uint8_t i = 0; i < m_segmentParts.length(); ++i) {
+    const SegmentPart *part = m_segmentParts[i];
+    if (led + part->size() > idx) {
+      return (*part)[idx - led]; // found it!
+    }
+    led += part->size();
+  }
+  return nullptr;
+}
+
 // -----------------------------------------------------------
 
 SegmentCompound::SegmentCompound()

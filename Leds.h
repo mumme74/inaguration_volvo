@@ -24,8 +24,8 @@ public:
   SegmentPart(CRGB **leds, uint16_t firstLed, uint16_t lastLed);
   ~SegmentPart();
 
-  uint16_t firstIdx() const { return m_firstIdx; }
-  uint16_t lastIdx() const { return m_lastIdx; }
+  uint16_t firstLedIdx() const { return m_firstIdx; }
+  uint16_t lastLedIdx() const { return m_lastIdx; }
   uint16_t size() const { return m_lastIdx - m_firstIdx; }
   CRGB *operator [] (uint16_t idx) const { return m_leds[idx]; }
 };
@@ -51,7 +51,10 @@ public:
   bool halted() const { return m_halted; }
   void setHalted(bool halt);
 
-  //
+  // LEDs
+  CRGB *operator [] (uint16_t idx) const;
+  uint16_t size() const;
+
 
 };
 
