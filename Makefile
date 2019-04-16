@@ -11,7 +11,7 @@ USER_LIB_PATH := $(realpath ../../libraries)
 
 BOARD_TAG    = mega
 BOARD_SUB    = atmega2560
-ARDUINO_LIBS = FastLED
+ARDUINO_LIBS = FastLED DList
 
 USER_DEFINES += -DDEBUG_UART_ON
 
