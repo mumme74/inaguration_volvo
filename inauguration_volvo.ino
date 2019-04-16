@@ -1,7 +1,26 @@
-#include "Arduino.h"
-#include "FastLED.h" // http://fastled.io/
+// arduino MEGA 2560
+#include <Arduino.h>
+#include <stdint.h>
+#include <FastLED.h> // http://fastled.io/
+
+
 #define NUM_LEDS 50
 #define DATA_PIN 3
+
+
+const uint8_t DATAOUT_CH1 = 3, // as in arduino i/o pin
+              DATAOUT_CH2 = 4,
+              DATAOUT_CH3 = 5,
+              DATAOUT_CH4 = 6,
+              DATAOUT_CH5 = 7;
+
+const uint8_t OUT_CH1 = 9,  // open drain 40A 100V
+              OUT_CH2 = 8;
+
+const uint8_t INPUT_CH1 = 54, //A0,
+              INPUT_CH2 = 55, //A2,
+              INPUT_CH3 = 56; //A1;
+
 
 CRGB leds[NUM_LEDS];
 //#define CLOCK_PIN 8
