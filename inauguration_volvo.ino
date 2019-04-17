@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <FastLED.h> // http://fastled.io/
+#include <MemoryFree.h>
 
 
 #define NUM_LEDS 50
@@ -38,6 +39,13 @@ void setup() {
 }
 
 void loop() {
+  static unsigned long secondsTick = 0;
+  if (secondsTick < millis()) {
+    secondsTick = millis() + 1000;
+    Serial.print("mem:"); Serial.println(freeMemory());
+  }
+
+
    // Move a single white led
    
    for(int led = 0; led < NUM_LEDS; ++led) {
