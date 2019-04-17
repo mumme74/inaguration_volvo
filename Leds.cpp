@@ -38,7 +38,7 @@ bool SegmentCommon::halted() const
 
 void SegmentCommon::setHalted(bool halt)
 {
-  m_halted = halted;
+  m_halted = halt;
 }
 
 void SegmentCommon::loop()
@@ -95,7 +95,7 @@ CRGB *Segment::operator[] (uint16_t idx)
   return nullptr;
 }
 
-uint16_t Segment::size() const
+uint16_t Segment::size()
 {
   uint16_t sz = 0;
   for(uint16_t i = 0;  i < m_segmentParts.length(); ++i) {
@@ -136,11 +136,11 @@ Segment* SegmentCompound::segmentAt(size_t idx)
   return m_segments[idx];
 }
 
-CRGB* SegmentCompound::operator [](uint16_t idx) const
+CRGB* SegmentCompound::operator [](uint16_t idx)
 {
   uint16_t led = 0;
   for(uint8_t i = 0; i < m_segments.length(); ++i) {
-    const Segment *segment = m_segments[i];
+    Segment *segment = m_segments[i];
     if (led + segment->size() > idx) {
       return (*segment)[idx - led]; // found it!
     }
@@ -149,11 +149,11 @@ CRGB* SegmentCompound::operator [](uint16_t idx) const
   return nullptr;
 }
 
-uint16_t SegmentCompound::size() const
+uint16_t SegmentCompound::size()
 {
   uint16_t sz = 0;
   for(uint16_t i = 0;  i < m_segments.length(); ++i) {
-    const Segment *segment = m_segments[i];
+    Segment *segment = m_segments[i];
     sz += segment->size();
   }
   return sz;

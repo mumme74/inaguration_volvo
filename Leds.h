@@ -52,7 +52,7 @@ public:
 
   // LEDs
   virtual CRGB* operator [] (uint16_t idx) = 0;
-  virtual uint16_t size() const = 0;
+  virtual uint16_t size() = 0;
 };
 
 // ---------------------------------------------------------
@@ -76,7 +76,7 @@ public:
 
   // LEDs
   CRGB *operator [] (uint16_t idx);
-  uint16_t size() const;
+  uint16_t size();
 };
 
 // -----------------------------------------------------------
@@ -99,7 +99,7 @@ public:
 
   // LEDs
   CRGB *operator [] (uint16_t idx);
-  uint16_t size() const;
+  uint16_t size();
 };
 
 #endif /* LEDS_H_ */

@@ -114,8 +114,10 @@ ActionDark::~ActionDark()
 void ActionDark::loop()
 {
   if (m_startTime == 0) {
-    for(uint16_t i = 0; i < m_owner->size(); ++i)
-      (*m_owner)[i] = CRGB::Black;
+    for(uint16_t i = 0; i < m_owner->size(); ++i) {
+      CRGB *rgb = (*m_owner)[i];
+      *rgb = CRGB::Black;
+    }
   }
 
   ActionBase::loop();
