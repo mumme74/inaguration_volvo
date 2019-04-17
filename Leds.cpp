@@ -21,8 +21,38 @@ SegmentPart::~SegmentPart()
 
 // --------------------------------------------------------------------
 
-Segment::Segment() :
+SegmentCommon::SegmentCommon() :
+    ActionsContainer(),
     m_halted(true)
+{
+}
+
+SegmentCommon::~SegmentCommon()
+{
+}
+
+bool SegmentCommon::halted() const
+{
+  return m_halted;
+}
+
+void SegmentCommon::setHalted(bool halt)
+{
+  m_halted = halted;
+}
+
+void SegmentCommon::loop()
+{
+  if (!m_halted && m_actions.length()) {
+    ActionBase *action = m_actions[m_currentIdx];
+    action->loop();
+  }
+}
+
+// --------------------------------------------------------------------
+
+Segment::Segment() :
+    SegmentCommon()
 {
 }
 
@@ -52,12 +82,7 @@ size_t Segment::segmentSize() const
   return m_segmentParts.length();
 }
 
-void Segment::setHalted(bool halt)
-{
-  m_halted = halt;
-}
-
-CRGB *Segment::operator[] (uint16_t idx) const
+CRGB *Segment::operator[] (uint16_t idx)
 {
   uint16_t led = 0;
   for(uint8_t i = 0; i < m_segmentParts.length(); ++i) {
@@ -70,9 +95,20 @@ CRGB *Segment::operator[] (uint16_t idx) const
   return nullptr;
 }
 
+uint16_t Segment::size() const
+{
+  uint16_t sz = 0;
+  for(uint16_t i = 0;  i < m_segmentParts.length(); ++i) {
+    const SegmentPart *part = m_segmentParts[i];
+    sz += part->size();
+  }
+  return sz;
+}
+
 // -----------------------------------------------------------
 
-SegmentCompound::SegmentCompound()
+SegmentCompound::SegmentCompound() :
+    SegmentCommon()
 {
 }
 
@@ -95,8 +131,31 @@ void SegmentCompound::removeSegment(size_t idx)
   m_segments.remove(idx);
 }
 
-Segment* SegmentCompound::operator [](size_t idx)
+Segment* SegmentCompound::segmentAt(size_t idx)
 {
   return m_segments[idx];
+}
+
+CRGB* SegmentCompound::operator [](uint16_t idx) const
+{
+  uint16_t led = 0;
+  for(uint8_t i = 0; i < m_segments.length(); ++i) {
+    const Segment *segment = m_segments[i];
+    if (led + segment->size() > idx) {
+      return (*segment)[idx - led]; // found it!
+    }
+    led += segment->size();
+  }
+  return nullptr;
+}
+
+uint16_t SegmentCompound::size() const
+{
+  uint16_t sz = 0;
+  for(uint16_t i = 0;  i < m_segments.length(); ++i) {
+    const Segment *segment = m_segments[i];
+    sz += segment->size();
+  }
+  return sz;
 }
 

@@ -7,10 +7,36 @@
 
 #ifndef ACTIONS_H_
 #define ACTIONS_H_
+#include <DList.h>
 #include <stdint.h>
 
-class Segment;
-class SegmentCompound;
+class SegmentCommon;
+class ActionBase;
+
+
+/**
+ * @brief: base class for Segment and SegmentCompound
+ *         implements actions logic
+ */
+class ActionsContainer {
+protected:
+  DListDynamic<ActionBase*> m_actions;
+  uint16_t m_currentIdx;
+public:
+  explicit ActionsContainer();
+  virtual ~ActionsContainer();
+
+  // Actions
+  size_t actionsSize() const;
+  void actionsPush(ActionBase *action);
+  void actionsRemove(ActionBase *action);
+  void actionsRestart();
+  void actionsNext();
+  ActionBase* actionsCurrent();
+  void nextAction();
+};
+
+// ----------------------------------------------------------
 
 /**
  * @brief: Base class for all actions
@@ -18,19 +44,33 @@ class SegmentCompound;
 class ActionBase {
 protected:
   bool m_singleShot;
-  unsigned long m_time;
-  Segment *m_segment;
-  SegmentCompound *m_segmentCompound;
+  unsigned long m_startTime;
+  uint32_t m_duration;
+  SegmentCommon *m_owner;
 
 public:
-  explicit ActionBase(Segment *segment);
-  explicit ActionBase(SegmentCompound *compound);
+  explicit ActionBase(SegmentCommon *owner);
   virtual ~ActionBase();
 
-  bool isRunning() const;
-  virtual bool isFinished() const = 0;
+  /// action takes this long in milliseconds
+  /// duration of 0 is a forever action
+  uint32_t duration() const { return m_duration; }
+  void setDuration(uint32_t duration) { m_duration = duration; }
 
-  virtual void loop() = 0; // subclass must implement
+  virtual bool isRunning() const;
+  virtual bool isFinished() const;
+
+  virtual void loop(); // subclass must implement functionality
+};
+
+// ----------------------------------------------------
+
+class ActionDark : public ActionBase {
+public:
+  explicit ActionDark(SegmentCommon *owner);
+  virtual ~ActionDark();
+
+  void loop();
 };
 
 #endif /* ACTIONS_H_ */
