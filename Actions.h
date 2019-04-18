@@ -9,6 +9,7 @@
 #define ACTIONS_H_
 #include <DList.h>
 #include <stdint.h>
+#include <FastLED.h>
 
 class SegmentCommon;
 class ActionBase;
@@ -65,12 +66,21 @@ public:
 
 // ----------------------------------------------------
 
-class ActionDark : public ActionBase {
+class ActionColor : public ActionBase {
+  CRGB m_color;
 public:
-  explicit ActionDark(SegmentCommon *owner);
-  virtual ~ActionDark();
+  explicit ActionColor(SegmentCommon *owner, CRGB color);
+  virtual ~ActionColor();
 
   void loop();
 };
+
+// ----------------------------------------------------
+
+class ActionDark : public ActionColor {
+public:
+  explicit ActionDark(SegmentCommon *owner);
+};
+
 
 #endif /* ACTIONS_H_ */

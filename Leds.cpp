@@ -85,8 +85,9 @@ size_t Segment::segmentSize() const
 CRGB *Segment::operator[] (uint16_t idx)
 {
   uint16_t led = 0;
-  for(uint8_t i = 0; i < m_segmentParts.length(); ++i) {
-    const SegmentPart *part = m_segmentParts[i];
+  for (const SegmentPart *part = m_segmentParts.first();
+      m_segmentParts.canMove(); part = m_segmentParts.next())
+  {
     if (led + part->size() > idx) {
       return (*part)[idx - led]; // found it!
     }
@@ -98,8 +99,9 @@ CRGB *Segment::operator[] (uint16_t idx)
 uint16_t Segment::size()
 {
   uint16_t sz = 0;
-  for(uint16_t i = 0;  i < m_segmentParts.length(); ++i) {
-    const SegmentPart *part = m_segmentParts[i];
+  for (const SegmentPart *part = m_segmentParts.first();
+      m_segmentParts.canMove(); part = m_segmentParts.next())
+  {
     sz += part->size();
   }
   return sz;
@@ -139,8 +141,9 @@ Segment* SegmentCompound::segmentAt(size_t idx)
 CRGB* SegmentCompound::operator [](uint16_t idx)
 {
   uint16_t led = 0;
-  for(uint8_t i = 0; i < m_segments.length(); ++i) {
-    Segment *segment = m_segments[i];
+  for (Segment *segment = m_segments.first();
+      m_segments.canMove(); segment = m_segments.next())
+  {
     if (led + segment->size() > idx) {
       return (*segment)[idx - led]; // found it!
     }
@@ -152,8 +155,9 @@ CRGB* SegmentCompound::operator [](uint16_t idx)
 uint16_t SegmentCompound::size()
 {
   uint16_t sz = 0;
-  for(uint16_t i = 0;  i < m_segments.length(); ++i) {
-    Segment *segment = m_segments[i];
+  for (Segment *segment = m_segments.first();
+      m_segments.canMove(); segment = m_segments.next())
+  {
     sz += segment->size();
   }
   return sz;

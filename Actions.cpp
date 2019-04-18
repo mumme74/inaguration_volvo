@@ -8,6 +8,7 @@
 
 #include "Actions.h"
 #include "Leds.h"
+#include <FastLED.h>
 
 ActionsContainer::ActionsContainer() :
   m_currentIdx(0)
@@ -100,27 +101,36 @@ void ActionBase::loop()
   }
 }
 
-// -----------------------------------------------
+// --------------------------------------------------
 
-ActionDark::ActionDark(SegmentCommon *owner) :
-    ActionBase(owner)
+ActionColor::ActionColor(SegmentCommon *owner, CRGB color) :
+    ActionBase(owner),
+    m_color(color)
 {
 }
 
-ActionDark::~ActionDark()
+ActionColor::~ActionColor()
 {
 }
 
-void ActionDark::loop()
+void ActionColor::loop()
 {
   if (m_startTime == 0) {
-    for(uint16_t i = 0; i < m_owner->size(); ++i) {
+    for(uint16_t i = 0, end = m_owner->size(); i < end; ++i) {
       CRGB *rgb = (*m_owner)[i];
-      *rgb = CRGB::Black;
+      *rgb = m_color;
     }
   }
 
   ActionBase::loop();
 }
+
+// -----------------------------------------------
+
+ActionDark::ActionDark(SegmentCommon *owner) :
+    ActionColor(owner, CRGB::Black)
+{
+}
+
 
 
