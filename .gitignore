@@ -58,3 +58,7 @@ build-*
 .cache-main
 .scala_dependencies
 .worksheet
+
+
+#macos
+.DS_Store
