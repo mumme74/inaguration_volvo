@@ -8,7 +8,6 @@
 
 #include "Actions.h"
 #include "Leds.h"
-#include <FastLED.h>
 
 ActionsContainer::ActionsContainer() :
   m_currentIdx(0)
@@ -46,11 +45,7 @@ void ActionsContainer::actionsRemove(ActionBase *action)
 void ActionsContainer::actionsRestart()
 {
   m_currentIdx = 0;
-}
-
-void ActionsContainer::actionsNext()
-{
-  ++m_currentIdx;
+  m_actions[m_currentIdx]->reset();
 }
 
 ActionBase* ActionsContainer::actionsCurrent()
@@ -65,15 +60,20 @@ void ActionsContainer::nextAction()
   ++m_currentIdx;
   if (m_actions.length() == m_currentIdx)
     m_currentIdx = 0;
+
+  m_actions[m_currentIdx]->reset();
 }
 
 // -------------------------------------------------------
 
-ActionBase::ActionBase(SegmentCommon *owner) :
+ActionBase::ActionBase(uint32_t duration) :
   m_singleShot(false), m_startTime(0),
-  m_duration(0), m_owner(owner)
+  m_duration(duration)
 {
 }
+
+// how many ms between each re-render
+const uint8_t ActionBase::m_updateTime = 70;
 
 ActionBase::~ActionBase()
 {
@@ -90,21 +90,29 @@ bool ActionBase::isFinished() const
   return m_duration > 0 && m_startTime + m_duration >= millis();
 }
 
-void ActionBase::loop()
+void ActionBase::reset()
+{
+  m_startTime = 0;
+}
+
+void ActionBase::loop(SegmentCommon *owner)
 {
   if (m_startTime == 0)
     m_startTime = millis();
 
   if (isFinished()) {
-    if (m_owner)
-      m_owner->nextAction();
+    if (m_singleShot)
+      owner->actionsRemove(this); // caution, deletes this,
+                                  // no code execution after this line
+    else
+      owner->nextAction();
   }
 }
 
 // --------------------------------------------------
 
-ActionColor::ActionColor(SegmentCommon *owner, CRGB color) :
-    ActionBase(owner),
+ActionColor::ActionColor(CRGB color, uint32_t duration) :
+    ActionBase(duration),
     m_color(color)
 {
 }
@@ -113,24 +121,129 @@ ActionColor::~ActionColor()
 {
 }
 
-void ActionColor::loop()
+void ActionColor::loop(SegmentCommon *owner)
 {
   if (m_startTime == 0) {
-    for(uint16_t i = 0, end = m_owner->size(); i < end; ++i) {
-      CRGB *rgb = (*m_owner)[i];
+    for(uint16_t i = 0, end = owner->size(); i < end; ++i) {
+      CRGB *rgb = (*owner)[i];
       *rgb = m_color;
     }
+    owner->render();
   }
 
-  ActionBase::loop();
+  ActionBase::loop(owner);
 }
 
 // -----------------------------------------------
 
-ActionDark::ActionDark(SegmentCommon *owner) :
-    ActionColor(owner, CRGB::Black)
+ActionDark::ActionDark(uint32_t duration) :
+    ActionColor(CRGB::Black, duration)
 {
 }
+
+ActionDark::~ActionDark()
+{
+}
+
+// -----------------------------------------------
+ActionIncColor::ActionIncColor(CRGB leftColor, CRGB rightColor, uint32_t duration) :
+    ActionBase(duration),
+    m_leftColor(leftColor), m_rightColor(rightColor)
+{
+}
+
+ActionIncColor::~ActionIncColor()
+{
+}
+
+void ActionIncColor::loop(SegmentCommon *owner)
+{
+  if (m_startTime == 0) {
+    int16_t diff[3] = {
+        m_leftColor.red - m_rightColor.red,
+        m_leftColor.green - m_rightColor.green,
+        m_leftColor.blue  - m_rightColor.blue
+    };
+
+    for (uint8_t c = 0; c < 3; ++c) {
+      // iterate for each color
+      for(uint16_t i = 0, sz = owner->size(); i < sz; ++i) {
+        float color = diff[c] / sz;
+        color = m_leftColor.raw[c] + (color * i);
+        CRGB *rgb = (*owner)[i];
+        rgb->raw[c] = round(color);
+      }
+    }
+    owner->render();
+  }
+
+  ActionBase::loop(owner);
+}
+
+
+// -----------------------------------------------
+
+ActionDimAll::ActionDimAll(CRGB fromColor, CRGB toColor, uint32_t duration) :
+    ActionBase(duration),
+    m_fromColor(fromColor), m_toColor(toColor),
+    m_nextIterTime(m_updateTime)
+{
+  // calculate how far away each color is and how much they should change each 70ms
+  int16_t redDiff   = toColor.red - fromColor.red,
+          greenDiff = toColor.green - fromColor.green,
+          blueDiff  = toColor.blue  - fromColor.blue;
+  int16_t maxDiff = max(max(redDiff, greenDiff), blueDiff),
+          minDiff = min(min(redDiff, greenDiff), blueDiff);
+  if ((-maxDiff) > minDiff)
+    // darker color wins
+    m_iterations = -minDiff / (duration || 1); // negate minDiff as we don't want
+                                               // negative m_iterations
+  else
+    m_iterations = maxDiff / (duration || 1);
+
+  m_incR = (redDiff / m_iterations) || 1;
+  m_incG = (greenDiff / m_iterations) || 1;
+  m_incB = (blueDiff / m_iterations) || 1;
+}
+
+ActionDimAll::~ActionDimAll()
+{
+}
+
+void ActionDimAll::loop(SegmentCommon *owner)
+{
+  uint8_t r, g, b;
+  if (m_startTime == 0) {
+    r = m_fromColor.red;
+    g = m_fromColor.green;
+    b = m_fromColor.blue;
+  } else {
+    r = m_toColor.red - (m_iterations * m_incR);
+    g = m_toColor.green - (m_iterations * m_incG);
+    b = m_toColor.blue - (m_iterations * m_incB);
+  }
+
+  if (m_startTime == 0 || m_startTime + m_nextIterTime <= millis()) {
+    m_nextIterTime = millis() + m_updateTime;
+    for(uint16_t i = 0, end = owner->size(); i < end; ++i) {
+      CRGB *rgb = (*owner)[i];
+      rgb->red = r;
+      rgb->green = g;
+      rgb->blue = b;
+    }
+    owner->render();
+  }
+
+  // call subclass
+  ActionBase::loop(owner);
+}
+
+void ActionDimAll::reset()
+{
+  m_nextIterTime = m_updateTime;
+  ActionBase::reset();
+}
+
 
 
 
