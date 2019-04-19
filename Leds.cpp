@@ -7,16 +7,29 @@
 
 #include "Leds.h"
 
-SegmentPart::SegmentPart(CRGB **leds,
-                         uint16_t firstLed,
-                         uint16_t lastLed) :
-    m_firstIdx(firstLed), m_lastIdx(lastLed),
-    m_leds(leds)
+SegmentPart::SegmentPart(CLEDController *controller,
+                         uint8_t firstLed,
+                         uint8_t noLeds) :
+    m_firstIdx(firstLed), m_noLeds(noLeds),
+    m_ledController(controller), m_hasChanges(false)
 {
 }
 
 SegmentPart::~SegmentPart()
 {
+}
+
+void SegmentPart::setLedController(CLEDController *controller)
+{
+  m_ledController = controller;
+}
+
+CRGB *SegmentPart::operator [] (uint8_t idx) const
+{
+  uint16_t i = m_firstIdx + idx;
+  if (m_ledController->size() <= (int)i)
+    return nullptr;
+  return &m_ledController->leds()[i];
 }
 
 // --------------------------------------------------------------------
@@ -45,7 +58,7 @@ void SegmentCommon::loop()
 {
   if (!m_halted && m_actions.length()) {
     ActionBase *action = m_actions[m_currentIdx];
-    action->loop();
+    action->loop(this);
   }
 }
 

@@ -17,18 +17,24 @@
  * @breif: a segment of leds within a single LED data out
  */
 class SegmentPart {
-  uint16_t m_firstIdx,
-           m_lastIdx;
-  CRGB **m_leds;
+  uint8_t m_firstIdx,
+           m_noLeds;
+  CLEDController *m_ledController;
+  bool m_hasChanges;
 
 public:
-  SegmentPart(CRGB **leds, uint16_t firstLed, uint16_t lastLed);
+  SegmentPart(CLEDController *controller, uint8_t firstLed, uint8_t noLeds);
   ~SegmentPart();
 
-  uint16_t firstLedIdx() const { return m_firstIdx; }
-  uint16_t lastLedIdx() const { return m_lastIdx; }
-  uint16_t size() const { return m_lastIdx - m_firstIdx; }
-  CRGB *operator [] (uint16_t idx) const { return m_leds[idx]; }
+  void setLedController(CLEDController *controller);
+
+  uint8_t firstLedIdx() const { return m_firstIdx; }
+  uint8_t lastLedIdx() const { return m_firstIdx + m_noLeds; }
+  uint16_t size() const { return m_noLeds; }
+  CRGB *operator [] (uint8_t idx) const;
+
+  bool hasChanges() const { return m_hasChanges; }
+  void setHasChanges(bool hasChanges) { m_hasChanges = hasChanges; }
 };
 
 //--------------------------------------------------------------
@@ -53,6 +59,8 @@ public:
   // LEDs
   virtual CRGB* operator [] (uint16_t idx) = 0;
   virtual uint16_t size() = 0;
+
+  void render();
 };
 
 // ---------------------------------------------------------
