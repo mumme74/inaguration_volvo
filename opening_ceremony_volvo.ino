@@ -3,10 +3,7 @@
 #include <stdint.h>
 #include <FastLED.h> // http://fastled.io/
 #include <MemoryFree.h>
-
-
-#define NUM_LEDS 50
-#define DATA_PIN 3
+#include "Leds.h"
 
 
 const uint8_t DATAOUT_CH1 = 3, // as in arduino i/o pin
@@ -23,8 +20,21 @@ const uint8_t INPUT_CH1 = 54, //A0,
               INPUT_CH3 = 56; //A1;
 
 
-CRGB leds[NUM_LEDS];
-//#define CLOCK_PIN 8
+const uint8_t NUM_LEDS_CH1 = 150,
+              NUM_LEDS_CH2 = 150,
+              NUM_LEDS_CH3 = 150,
+              NUM_LEDS_CH4 = 150;
+
+CRGB leds_ch1[NUM_LEDS_CH1],
+     leds_ch2[NUM_LEDS_CH2],
+     leds_ch3[NUM_LEDS_CH3],
+     leds_ch4[NUM_LEDS_CH4];
+
+SegmentPart kuLogoLeft(nullptr, 10, 30),
+            kuLogoMiddle(nullptr, 42, 20),
+            kuLogoRight(nullptr, 75, 40);
+
+Segment kuLogo();
 
 
 // https://forum.arduino.cc/index.php?topic=483504.0
@@ -34,8 +44,19 @@ void setAllToColor(uint32_t col);
 void snake(uint32_t bgColor, uint32_t snakeColor, int fromLed, int toLed, int waitTime);
 
 void setup() {
-  delay(100);
-  FastLED.addLeds<UCS1903, DATA_PIN, BRG>(leds, NUM_LEDS); 
+  delay(100); // allow to setup
+  FastLED.addLeds<UCS1903, DATAOUT_CH1, BRG>(leds_ch1, NUM_LEDS_CH1);
+  FastLED.addLeds<UCS1903, DATAOUT_CH2, BRG>(leds_ch2, NUM_LEDS_CH2);
+  FastLED.addLeds<UCS1903, DATAOUT_CH3, BRG>(leds_ch3, NUM_LEDS_CH3);
+  FastLED.addLeds<UCS1903, DATAOUT_CH4, BRG>(leds_ch4, NUM_LEDS_CH4);
+
+  // setup controller
+  CLEDController *cont_ch1 = &FastLED[0];
+  kuLogoLeft.setLedController(cont_ch1);
+  kuLogoMiddle.setLedController(cont_ch1);
+  kuLogoMiddle.setLedController(cont_ch1);
+
+  // kulogo
 }
 
 void loop() {
@@ -48,9 +69,9 @@ void loop() {
 
    // Move a single white led
    
-   for(int led = 0; led < NUM_LEDS; ++led) {
+   for(int led = 0; led < NUM_LEDS_CH1; ++led) {
       // Turn our current led on to white, then show the leds
-      leds[led] = CRGB::White;
+      leds_ch1[led] = CRGB::White;
 
       // Show the leds (only one of which is set to white, from above)
       FastLED.show();
@@ -59,7 +80,7 @@ void loop() {
       delay(100);
 
       // Turn our current led back to black for the next loop around
-      leds[led] = CRGB::DarkRed;
+      leds_ch1[led] = CRGB::DarkRed;
    }
 
    for (int times = 0; times < 3; ++times) {
@@ -71,11 +92,11 @@ void loop() {
       delay(100);
    }
 
-   snake(CRGB::Indigo, CRGB::Lavender, 0, NUM_LEDS, 40);
+   snake(CRGB::Indigo, CRGB::Lavender, 0, NUM_LEDS_CH1, 40);
 
-   fadeToBlackBy(leds, NUM_LEDS, 20);
+   fadeToBlackBy(leds_ch1, NUM_LEDS_CH1, 20);
 
-   fill_gradient_RGB(leds, 2, CRGB::DarkGray, 30, CRGB::Indigo);
+   fill_gradient_RGB(leds_ch1, 2, CRGB::DarkGray, 30, CRGB::Indigo);
 
    clear();
    delay(500);
@@ -84,15 +105,15 @@ void loop() {
 void snake(uint32_t bgColor, uint32_t snakeColor, int fromLed, int toLed, int waitTime) {
   // set background
   for (int led = fromLed; led < toLed; ++led) {
-    leds[led] = bgColor;
+    leds_ch1[led] = bgColor;
   }
 
   int previous = -1;
   for (int led = fromLed; led < toLed + 1; ++led) {
     if (led < toLed)
-      leds[led] = snakeColor;
+      leds_ch1[led] = snakeColor;
     if (previous > -1)
-      leds[previous] = bgColor;
+      leds_ch1[previous] = bgColor;
     previous = led;
     FastLED.show();
     delay(waitTime);
@@ -100,8 +121,8 @@ void snake(uint32_t bgColor, uint32_t snakeColor, int fromLed, int toLed, int wa
 }
 
 void setAllToColor(uint32_t col) {
-   for (int led = 0; led < NUM_LEDS; ++led)
-      leds[led] = col;
+   for (int led = 0; led < NUM_LEDS_CH1; ++led)
+      leds_ch1[led] = col;
    FastLED.show();
   
 }
