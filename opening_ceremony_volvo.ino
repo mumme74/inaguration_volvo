@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <FastLED.h> // http://fastled.io/
 #include <MemoryFree.h>
-#include "Leds.h"
+#include <FastLED_Action.h>
 
 
 const uint8_t DATAOUT_CH1 = 3, // as in arduino i/o pin
@@ -30,11 +30,11 @@ CRGB leds_ch1[NUM_LEDS_CH1],
      leds_ch3[NUM_LEDS_CH3],
      leds_ch4[NUM_LEDS_CH4];
 
-SegmentPart kuLogoLeft(nullptr, 10, 30),
-            kuLogoMiddle(nullptr, 42, 20),
-            kuLogoRight(nullptr, 75, 40);
+Segment kuLogoLeft,
+        kuLogoMiddle,
+        kuLogoRight;
 
-Segment kuLogo();
+SegmentCompound kuLogo;
 
 
 // https://forum.arduino.cc/index.php?topic=483504.0
@@ -45,18 +45,23 @@ void snake(uint32_t bgColor, uint32_t snakeColor, int fromLed, int toLed, int wa
 
 void setup() {
   delay(100); // allow to setup
-  FastLED.addLeds<UCS1903, DATAOUT_CH1, BRG>(leds_ch1, NUM_LEDS_CH1);
+  CLEDController
+      *kuLeftC   = &FastLED.addLeds<UCS1903, DATAOUT_CH1, BRG>(leds_ch1, 10, 30),
+      *kuMiddleC = &FastLED.addLeds<UCS1903, DATAOUT_CH1, BRG>(leds_ch1, 42, 20),
+      *kuRightC  = &FastLED.addLeds<UCS1903, DATAOUT_CH1, BRG>(leds_ch1, 65, 40);
   FastLED.addLeds<UCS1903, DATAOUT_CH2, BRG>(leds_ch2, NUM_LEDS_CH2);
   FastLED.addLeds<UCS1903, DATAOUT_CH3, BRG>(leds_ch3, NUM_LEDS_CH3);
   FastLED.addLeds<UCS1903, DATAOUT_CH4, BRG>(leds_ch4, NUM_LEDS_CH4);
 
   // setup controller
-  CLEDController *cont_ch1 = &FastLED[0];
-  kuLogoLeft.setLedController(cont_ch1);
-  kuLogoMiddle.setLedController(cont_ch1);
-  kuLogoMiddle.setLedController(cont_ch1);
+  kuLogoLeft.addLedController(kuLeftC);
+  kuLogoMiddle.addLedController(kuMiddleC);
+  kuLogoRight.addLedController(kuRightC);
 
   // kulogo
+  kuLogo.addSegment(&kuLogoLeft);
+  kuLogo.addSegment(&kuLogoMiddle);
+  kuLogo.addSegment(&kuLogoRight);
 }
 
 void loop() {
