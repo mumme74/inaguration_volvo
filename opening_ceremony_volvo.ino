@@ -13,7 +13,8 @@ const uint8_t DATAOUT_CH1 = 3, // as in arduino i/o pin
               DATAOUT_CH5 = 7;
 
 const uint8_t OUT_CH1 = 9,  // open drain 40A 100V
-              OUT_CH2 = 8;
+              OUT_CH2 = 8,
+              OUT_LED = 13;
 
 const uint8_t INPUT_CH1 = 54, //A0,
               INPUT_CH2 = 55, //A2,
@@ -122,24 +123,35 @@ void setup() {
 
   pinMode(OUT_CH1, OUTPUT);
   pinMode(OUT_CH2, OUTPUT);
+  pinMode(OUT_LED, OUTPUT);
 }
 
 
 // main loop
 void loop() {
   // sanity check, so we don't run our head straight through our stack
-  static unsigned long secondsTick = 0;
+  static uint32_t secondsTick = 0;
   int mem = freeMemory();
   if (secondsTick < millis() || mem > 6144) {
     secondsTick = millis() + 1000;
     Serial.print("mem:"); Serial.println(freeMemory());
   }
 
-  static uint32_t programRunned = 0;
+  static uint32_t programRunned = 0,
+                  ledTick = 0;
+  static bool programRunning = false;
+
+  if (ledTick < millis()) {
+    ledTick = millis() + (programRunning ? 300 : 1000);
+    // toggle led
+    digitalWrite(OUT_LED, !digitalRead(OUT_LED));
+  }
 
   FastLED_Action::loop();
   if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2)) {
-    FastLED_Action::runProgram(false);
+    programRunning = true;
+    FastLED_Action::runProgram(2);
+    programRunning = false;
     programRunned = millis();
   }
 
