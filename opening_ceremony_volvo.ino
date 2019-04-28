@@ -50,25 +50,27 @@ SegmentPart kuLogoPart1(ch1, 0, 5),
             volvoLogoOutsidePart2(ch2, 20, 6),
             volvoLogoInsideRingPart1(ch2, 6, 4),
             volvoLogoInsideRingPart2(ch2, 16, 4),
-            volvoLogoTextPart(ch2, 10, 6);
-            //connectStripPart3(ch2, 96, 9);
+            volvoLogoTextPart(ch2, 10, 6),
+            connectStripPart3(ch2, 27, 23);
 
-Segment kuLogoLeft,
-        kuLogoCenter,
-        kuLogoRight,
-        liljasLogoInside,
-        liljasLogoOutside,
-        volvoLogoInside,
-        volvoLogoText,
-        volvoLogoOutside,
-        connectStrip;
 
-SegmentCompound kuLogo, liljasLogo, volvoLogo, all;
 
 
 
 // our main program goes in here
 void FastLED_Action::program() {
+  Segment kuLogoLeft,
+          kuLogoCenter,
+          kuLogoRight,
+          liljasLogoInside,
+          liljasLogoOutside,
+          volvoLogoInside,
+          volvoLogoText,
+          volvoLogoOutside,
+          connectStrip;
+
+  SegmentCompound kuLogo, liljasLogo, volvoLogo, all;
+
   // kulogo
   kuLogoLeft.addSegmentPart(kuLogoPart1);
   kuLogoCenter.addSegmentPart(kuLogoPart2);
@@ -90,13 +92,14 @@ void FastLED_Action::program() {
   volvoLogoText.addSegmentPart(volvoLogoTextPart);
   volvoLogoOutside.addSegmentPart(volvoLogoOutsidePart1);
   volvoLogoOutside.addSegmentPart(volvoLogoOutsidePart2);
-
-
+  volvoLogo.addSegment(volvoLogoInside);
+  volvoLogo.addSegment(volvoLogoText);
+  volvoLogo.addSegment(volvoLogoOutside);
 
   // connectStrip
   connectStrip.addSegmentPart(connectStripPartKuLogo);
   connectStrip.addSegmentPart(connectStripPartLiljasLogo);
-  //connectStrip.addSegmentPart(connectStripPart3);
+  connectStrip.addSegmentPart(connectStripPart3);
 
   // actions
   ActionSnake actSnake1(CRGB::Red, CRGB::White),
@@ -118,14 +121,15 @@ void FastLED_Action::program() {
               actGray(CRGB::Green),
               actOrange(CRGB::OrangeRed);
   kuLogo.addAction(actRed);
+  kuLogo.addAction(actBlue);
   connectStrip.addAction(actGreen);
 
   liljasLogo.addAction(actBlue);
   liljasLogo.addAction(actOlive);
 
-  volvoLogoInside.addAction(actSilver);
-  volvoLogoText.addAction(actOrange);
-  volvoLogoOutside.addAction(actGray);
+  volvoLogo.addAction(actSilver);
+  volvoLogo.addAction(actOrange);
+  volvoLogo.addAction(actGray);
 
   //kuLogo.addAction(actBlue);
   //kuLogo.addAction(actSnake1);
@@ -177,7 +181,7 @@ void setup() {
   pinMode(OUT_CH2, OUTPUT);
   pinMode(OUT_LED, OUTPUT);
 
-  // clear led controllers
+  // clear led controllers, needed as led strip starts with white color
   ch1->clearLeds(NUM_LEDS_CH1);
   ch2->clearLeds(NUM_LEDS_CH2);
   ch3->clearLeds(NUM_LEDS_CH3);
@@ -190,10 +194,14 @@ void setup() {
 void loop() {
   // sanity check, so we don't run our head straight through our stack
   static uint32_t secondsTick = 0;
+  static uint16_t loopsPerSec = 0;
+  ++loopsPerSec;
   int mem = freeMemory();
-  if (secondsTick < millis() || mem > 6144) {
+  if (secondsTick < millis() || mem < 2048) {
     secondsTick = millis() + 1000;
-    Serial.print("mem:"); Serial.println(freeMemory());
+    Serial.print("mem:"); Serial.println(mem);
+    Serial.print("loops:");Serial.println(loopsPerSec);
+    loopsPerSec = 0;
   }
 
   static uint32_t programRunned = 0,
