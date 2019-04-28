@@ -21,10 +21,11 @@ const uint8_t INPUT_CH1 = 54, //A0,
               INPUT_CH3 = 55; //A1;
 
 
-const uint8_t NUM_LEDS_CH1 = 150,
-              NUM_LEDS_CH2 = 150,
-              NUM_LEDS_CH3 = 150,
-              NUM_LEDS_CH4 = 150;
+              // Bah!! 3LED are in parallell in these cheap LED strips
+const uint8_t NUM_LEDS_CH1 = 150 / 3,
+              NUM_LEDS_CH2 = 150 / 3,
+              NUM_LEDS_CH3 = 150 / 3,
+              NUM_LEDS_CH4 = 150 / 3;
 
 CRGB leds_ch1[NUM_LEDS_CH1],
      leds_ch2[NUM_LEDS_CH2],
@@ -38,39 +39,64 @@ CLEDController
      *ch4 = &FastLED.addLeds<UCS1903, DATAOUT_CH4, BRG>(leds_ch4, NUM_LEDS_CH4);
 
 
-SegmentPart kuLogoPart1(ch1, 10, 45),
-            kuLogoPart2(ch1, 60, 35),
-            kuLogoPart3(ch1, 105, 45),
-            connectStripPart1(ch1, 0, 10),
-            connectStripPart2(ch1, 56, 4),
-            connectStripPart3(ch1, 96, 9);
+SegmentPart kuLogoPart1(ch1, 0, 5),
+            kuLogoPart2(ch1, 7, 4),
+            kuLogoPart3(ch1, 13, 10),
+            connectStripPartKuLogo(ch1, 24, 25),
+            liljasLogoInsidePart(ch3, 0, 18),
+            liljasLogoOutsidePart(ch3, 18, 19),
+            connectStripPartLiljasLogo(ch3, 39, 11),
+            volvoLogoOutsidePart1(ch2, 0, 6),
+            volvoLogoOutsidePart2(ch2, 20, 6),
+            volvoLogoInsideRingPart1(ch2, 6, 4),
+            volvoLogoInsideRingPart2(ch2, 16, 4),
+            volvoLogoTextPart(ch2, 10, 6);
+            //connectStripPart3(ch2, 96, 9);
 
-Segment kuLogo,
-        liljasLogo,
-        volvoLogo,
+Segment kuLogoLeft,
+        kuLogoCenter,
+        kuLogoRight,
+        liljasLogoInside,
+        liljasLogoOutside,
+        volvoLogoInside,
+        volvoLogoText,
+        volvoLogoOutside,
         connectStrip;
 
-SegmentCompound all;
+SegmentCompound kuLogo, liljasLogo, volvoLogo, all;
 
 
 
 // our main program goes in here
 void FastLED_Action::program() {
-
-  // setup kuLogoParts
-  kuLogoPart1.setLedController(ch1);
-  kuLogoPart2.setLedController(ch1);
-  kuLogoPart3.setLedController(ch1);
-
   // kulogo
-  kuLogo.addSegmentPart(kuLogoPart1);
-  kuLogo.addSegmentPart(kuLogoPart2);
-  kuLogo.addSegmentPart(kuLogoPart3);
+  kuLogoLeft.addSegmentPart(kuLogoPart1);
+  kuLogoCenter.addSegmentPart(kuLogoPart2);
+  kuLogoRight.addSegmentPart(kuLogoPart3);
+  kuLogo.addSegment(kuLogoLeft);
+  kuLogo.addSegment(kuLogoCenter);
+  kuLogo.addSegment(kuLogoRight);
+
+
+  // liljas logo
+  liljasLogoInside.addSegmentPart(liljasLogoInsidePart);
+  liljasLogoOutside.addSegmentPart(liljasLogoOutsidePart);
+  liljasLogo.addSegment(liljasLogoInside);
+  liljasLogo.addSegment(liljasLogoOutside);
+
+  // volvo logo
+  volvoLogoInside.addSegmentPart(volvoLogoInsideRingPart1);
+  volvoLogoInside.addSegmentPart(volvoLogoInsideRingPart2);
+  volvoLogoText.addSegmentPart(volvoLogoTextPart);
+  volvoLogoOutside.addSegmentPart(volvoLogoOutsidePart1);
+  volvoLogoOutside.addSegmentPart(volvoLogoOutsidePart2);
+
+
 
   // connectStrip
-  connectStrip.addSegmentPart(connectStripPart1);
-  connectStrip.addSegmentPart(connectStripPart2);
-  connectStrip.addSegmentPart(connectStripPart3);
+  connectStrip.addSegmentPart(connectStripPartKuLogo);
+  connectStrip.addSegmentPart(connectStripPartLiljasLogo);
+  //connectStrip.addSegmentPart(connectStripPart3);
 
   // actions
   ActionSnake actSnake1(CRGB::Red, CRGB::White),
@@ -81,6 +107,33 @@ void FastLED_Action::program() {
               actColorDarkGreen(CRGB::DarkGreen);
   ActionFade actFade(5);
   ActionColorLadder actLadder(CRGB::DarkGray, CRGB::Indigo);
+
+  // DEBUGG!!!
+  ActionColor actRed(CRGB::Red),
+              actGreen(CRGB::Green),
+              actBlue(CRGB::Blue),
+              actOlive(CRGB::Olive),
+              actNavy(CRGB::Navy),
+              actSilver(CRGB::Silver),
+              actGray(CRGB::Green),
+              actOrange(CRGB::OrangeRed);
+  kuLogo.addAction(actRed);
+  connectStrip.addAction(actGreen);
+
+  liljasLogo.addAction(actBlue);
+  liljasLogo.addAction(actOlive);
+
+  volvoLogoInside.addAction(actSilver);
+  volvoLogoText.addAction(actOrange);
+  volvoLogoOutside.addAction(actGray);
+
+  //kuLogo.addAction(actBlue);
+  //kuLogo.addAction(actSnake1);
+  Serial.println("before");
+  kuLogo.yieldUntilAction(10);
+  Serial.println("after 10times");
+  return;
+// end debug
 
   // setup actions
   kuLogo.addAction(actSnake1);
@@ -116,7 +169,6 @@ void setup() {
   delay(100); // allow to setup
   Serial.begin(115200);
 
-  // FIXME need to solder 2 pulldown resistors to our inputs
   // apparently mega2560 doesn't have pulldown
   pinMode(INPUT_CH1, INPUT);
   pinMode(INPUT_CH2, INPUT);
@@ -155,8 +207,8 @@ void loop() {
   }
 
   FastLED_Action::loop();
-  //if (!programRunning ) {
-  if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2) && !programRunning) {
+  if (!programRunning ) {
+  //if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2) && !programRunning) {
     programRunning = true;
     FastLED_Action::runProgram(2);
     programRunning = false;
