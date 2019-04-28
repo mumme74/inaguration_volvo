@@ -17,8 +17,8 @@ const uint8_t OUT_CH1 = 9,  // open drain 40A 100V
               OUT_LED = 13;
 
 const uint8_t INPUT_CH1 = 54, //A0,
-              INPUT_CH2 = 55, //A2,
-              INPUT_CH3 = 56; //A1;
+              INPUT_CH2 = 56, //A2,
+              INPUT_CH3 = 55; //A1;
 
 
 const uint8_t NUM_LEDS_CH1 = 150,
@@ -124,6 +124,13 @@ void setup() {
   pinMode(OUT_CH1, OUTPUT);
   pinMode(OUT_CH2, OUTPUT);
   pinMode(OUT_LED, OUTPUT);
+
+  // clear led controllers
+  ch1->clearLeds(NUM_LEDS_CH1);
+  ch2->clearLeds(NUM_LEDS_CH2);
+  ch3->clearLeds(NUM_LEDS_CH3);
+  ch4->clearLeds(NUM_LEDS_CH4);
+  FastLED.show();
 }
 
 
@@ -148,7 +155,8 @@ void loop() {
   }
 
   FastLED_Action::loop();
-  if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2)) {
+  //if (!programRunning ) {
+  if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2) && !programRunning) {
     programRunning = true;
     FastLED_Action::runProgram(2);
     programRunning = false;
