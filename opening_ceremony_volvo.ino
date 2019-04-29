@@ -51,10 +51,7 @@ SegmentPart kuLogoPart1(ch1, 0, 5),
             volvoLogoInsideRingPart1(ch2, 6, 4),
             volvoLogoInsideRingPart2(ch2, 16, 4),
             volvoLogoTextPart(ch2, 10, 6),
-            connectStripPart3(ch2, 27, 23);
-
-
-
+            connectStripPartVolvoLogo(ch2, 27, 23);
 
 
 // our main program goes in here
@@ -99,74 +96,161 @@ void FastLED_Action::program() {
   // connectStrip
   connectStrip.addSegmentPart(connectStripPartKuLogo);
   connectStrip.addSegmentPart(connectStripPartLiljasLogo);
-  connectStrip.addSegmentPart(connectStripPart3);
+  connectStrip.addSegmentPart(connectStripPartVolvoLogo);
+
+
+//  // DEBUGG!!!
+//  Serial.println("debug begin");
+//  ActionColor actRed(CRGB::Red),
+//              actGreen(CRGB::Green),
+//              actBlue(CRGB::Blue),
+//              actOlive(CRGB::Olive),
+//              actNavy(CRGB::Navy),
+//              actSilver(CRGB::Silver),
+//              actGray(CRGB::Green),
+//              actOrange(CRGB::OrangeRed);
+//
+//  ActionGotoColor actGoRedToGreen(0xFF0000, 0x00FF00),
+//                  actGoGreenToRed(0x00FF00, 0xFF0000);
+//
+//  ActionColorLadder actGtoR(0x00FF00, 0xFF0000),
+//                    actRtoB(0xFF0000, 0x0000FF),
+//                    actRtoG(0xFF0000, 0x00FF00);
+//
+//  ActionFade actFade1(5, 5000);
+//
+//  ActionEaseInOut actEaseInOut(0xFFFF00, -40);
+//
+//  ActionSnake actSnake_tmp1(CRGB::RosyBrown, CRGB::White, false);
+//  ActionSnake actSnake_tmp2(CRGB::RosyBrown, CRGB::White, true);
+//  ActionSnake actSnake_tmp3(CRGB::RosyBrown, CRGB::White, false, true);
+//  ActionSnake actSnake_tmp4(CRGB::RosyBrown, CRGB::White, true, true, 2000);
+//
+//  ActionWait actWait2s(2000);
+//
+//  //kuLogo.addAction(actRed);
+//  //kuLogo.addAction(actBlue);
+//  //connectStrip.addAction(actGreen);
+//
+//  liljasLogo.addAction(actGreen);
+//  //liljasLogo.addAction(actGoRedToGreen);
+//  //liljasLogo.addAction(actGoGreenToRed);
+//  //liljasLogo.addAction(actGtoR);
+//  //liljasLogo.addAction(actRtoB);
+//  //liljasLogo.addAction(actRtoG);
+//  liljasLogo.addAction(actFade1);
+//  liljasLogo.addAction(actWait2s);
+//  //liljasLogo.addAction(actEaseInOut);
+//  //liljasLogo.addAction(actSnake_tmp1);
+//  //liljasLogo.addAction(actSnake_tmp2);
+//  //liljasLogo.addAction(actSnake_tmp3);
+//  //liljasLogo.addAction(actSnake_tmp4);
+//  liljasLogo.yieldUntilAction(10);
+//
+//  //volvoLogo.addAction(actSilver);
+//  //volvoLogo.addAction(actOrange);
+//  //volvoLogo.addAction(actGray);
+//
+//  //kuLogo.addAction(actBlue);
+//  //kuLogo.addAction(actSnake1);
+//  //kuLogo.yieldUntilAction(10);
+//  Serial.println("debug return");
+//  return;
+//// end debug
 
   // actions
-  ActionSnake actSnake1(CRGB::Red, CRGB::White),
-              actSnake2(CRGB::Indigo, CRGB::Lavender),
-              actSnake3(CRGB::Lavender, CRGB::Indigo, true, true);
-  ActionColor actColorDarkGray(CRGB::DarkGray),
-              actColorDarkBlue(CRGB::DarkBlue),
-              actColorDarkGreen(CRGB::DarkGreen);
-  ActionFade actFade(5);
+  ActionSnake actSnake1(CRGB::Indigo, CRGB::White, false, false, 1500),
+              actSnake2(CRGB::Indigo, CRGB::Lavender, true, false, 1500),
+              actSnake3(CRGB::Lavender, CRGB::Indigo, true, true, 1500);
+  ActionGotoColor actColorDarkGray(CRGB::Black, CRGB::DarkGray, 500),
+                  actColorDarkBlue(CRGB::DarkGray, CRGB::DarkBlue, 500),
+                  actColorDarkGreen(CRGB::DarkBlue, CRGB::DarkGreen, 500);
+  ActionFade actFade(5, 2000);
+  ActionFadeIn actFadeIn(CRGB::Silver, 5);
   ActionColorLadder actLadder(CRGB::DarkGray, CRGB::Indigo);
+  ActionWait actWait1s5(1500);
 
-  // DEBUGG!!!
-  ActionColor actRed(CRGB::Red),
-              actGreen(CRGB::Green),
-              actBlue(CRGB::Blue),
-              actOlive(CRGB::Olive),
-              actNavy(CRGB::Navy),
-              actSilver(CRGB::Silver),
-              actGray(CRGB::Green),
-              actOrange(CRGB::OrangeRed);
-  kuLogo.addAction(actRed);
-  kuLogo.addAction(actBlue);
-  connectStrip.addAction(actGreen);
+  { // scope block, auto disconnect when leave
+    SegmentCompound allLogos;
+    allLogos.addCompound(kuLogo);
+    allLogos.addCompound(liljasLogo);
+    allLogos.addCompound(volvoLogo);
 
-  liljasLogo.addAction(actBlue);
-  liljasLogo.addAction(actOlive);
+    allLogos.addAction(actSnake1);
+    allLogos.addAction(actSnake2);
+    allLogos.addAction(actFade);
+    allLogos.addAction(actFadeIn);
+    allLogos.addAction(actFade);
+    allLogos.addAction(actFadeIn);
+    allLogos.addAction(actFade);
+    allLogos.addAction(actFadeIn);
+    allLogos.addAction(actWait1s5);
+    allLogos.addAction(actColorDarkGray);
+    allLogos.addAction(actColorDarkBlue);
+    allLogos.addAction(actColorDarkGreen);
+    allLogos.yieldUntilAction(actColorDarkGreen);
+    //allLogos.yieldUntilAction(actWait1s5);return;
+  }
 
-  volvoLogo.addAction(actSilver);
-  volvoLogo.addAction(actOrange);
-  volvoLogo.addAction(actGray);
-
-  //kuLogo.addAction(actBlue);
-  //kuLogo.addAction(actSnake1);
-  Serial.println("before");
-  kuLogo.yieldUntilAction(10);
-  Serial.println("after 10times");
-  return;
-// end debug
+  FastLED_Action::clearAllActions();
 
   // setup actions
-  kuLogo.addAction(actSnake1);
-  kuLogo.addAction(actColorDarkGray);
-  kuLogo.addAction(actColorDarkBlue);
-  kuLogo.addAction(actColorDarkGreen);
-  kuLogo.addAction(actSnake2);
-  kuLogo.addAction(actSnake3);
-  kuLogo.addAction(actFade);
-  kuLogo.addAction(actLadder);
+  ActionColor actKuLeft(CRGB::Chartreuse),
+              actKuCenter(CRGB::OrangeRed),
+              actKuRight(CRGB::DarkCyan),
+              actLiljasInside(CRGB::DarkSlateBlue),
+              actLiljasOutside(CRGB::DeepSkyBlue),
+              actVolvoOutside(CRGB::Gainsboro),
+              actVolvoInside(CRGB::FloralWhite),
+              actVolvoText(CRGB::Aqua);
+  // clear kulogo, work on single segments from here on
+  while(kuLogo.segmentSize() > 0)
+    kuLogo.removeSegmentByIdx(0);
+
+  kuLogoLeft.addAction(actKuLeft);
+  kuLogoCenter.addAction(actKuCenter);
+  kuLogoRight.addAction(actKuRight);
+
+  // clear logo compound
+  while(liljasLogo.segmentSize() > 0)
+    liljasLogo.removeSegmentByIdx(0);
+
+  liljasLogoOutside.addAction(actLiljasOutside);
+  liljasLogoInside.addAction(actLiljasInside);
+
+  // clear volvo logo
+  while (volvoLogo.segmentSize() > 0)
+    volvoLogo.removeSegmentByIdx(0);
+
+  volvoLogoOutside.addAction(actVolvoOutside);
+  volvoLogoInside.addAction(actVolvoInside);
+  volvoLogoText.addAction(actVolvoText);
+
+  ActionSnake actStrip1(CRGB::OrangeRed, CRGB::AntiqueWhite, false, false, 2000),
+              actStrip2(CRGB::OrangeRed, CRGB::AntiqueWhite, true, true, 2000);
+  ActionWait actWait500(500);
+  connectStrip.addAction(actStrip1);
+  connectStrip.addAction(actStrip2);
+  connectStrip.addAction(actWait500);
+  connectStrip.addAction(actWait500);
+
 
   // let the actions play out, repeat 5 times
   for (uint8_t i = 0; i < 2; ++i)
-    kuLogo.yieldUntilAction(kuLogo.actionsSize());
+    connectStrip.yieldUntilAction(connectStrip.actionsSize());
 
   // blow our load of glitter (steer airpressure vales)
-  FastLED_Action::clearAllActions();
-  ActionGotoColor actDark1(CRGB::Gray, CRGB::Black, 300),
-                  actWhite1(CRGB::Black, CRGB::WhiteSmoke, 200);
-  kuLogo.addAction(actDark1);
-  kuLogo.addAction(actWhite1);
-  kuLogo.yieldUntilAction(actWhite1);
-  digitalWrite(OUT_CH1, HIGH);
-  kuLogo.yieldUntilAction(actDark1);
-  digitalWrite(OUT_CH2, HIGH);
-  kuLogo.yieldUntilAction(2);
-  digitalWrite(OUT_CH1, LOW);
-  digitalWrite(OUT_CH2, LOW);
 
+  static bool blownOurGrafitti = false;
+  if (!blownOurGrafitti) {
+    digitalWrite(OUT_CH1, HIGH);
+    connectStrip.yieldUntilAction(actWait500);
+    digitalWrite(OUT_CH2, HIGH);
+    digitalWrite(OUT_CH1, LOW);
+    connectStrip.yieldUntilAction(actWait500);
+    digitalWrite(OUT_CH2, LOW);
+    blownOurGrafitti = true;
+  }
 }
 
 void setup() {
