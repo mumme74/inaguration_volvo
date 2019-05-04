@@ -22,9 +22,9 @@ const uint8_t INPUT_CH1 = 54, //A0,
 
 
               // Bah!! 3LED are in parallell in these cheap LED strips
-const uint8_t NUM_LEDS_CH1 = 150 / 3,
-              NUM_LEDS_CH2 = 150 / 3,
-              NUM_LEDS_CH3 = 150 / 3,
+const uint8_t NUM_LEDS_CH1 = 50,
+              NUM_LEDS_CH2 = 34,
+              NUM_LEDS_CH3 = 49,
               NUM_LEDS_CH4 = 150 / 3;
 
 CRGB leds_ch1[NUM_LEDS_CH1],
@@ -198,8 +198,8 @@ void FastLED_Action::program() {
   ActionColor actKuLeft(CRGB::Chartreuse),
               actKuCenter(CRGB::OrangeRed),
               actKuRight(CRGB::DarkCyan),
-              actLiljasInside(CRGB::DarkSlateBlue),
-              actLiljasOutside(CRGB::DeepSkyBlue),
+              actLiljasInside(CRGB::DeepSkyBlue),
+              actLiljasOutside(CRGB::DarkSlateBlue),
               actVolvoOutside(CRGB::Gainsboro),
               actVolvoInside(CRGB::FloralWhite),
               actVolvoText(CRGB::Aqua);
@@ -232,26 +232,36 @@ void FastLED_Action::program() {
   connectStrip.addAction(actStrip1);
   connectStrip.addAction(actStrip2);
   connectStrip.addAction(actWait500);
-  connectStrip.addAction(actWait500);
-
-
-  // let the actions play out, repeat 5 times
-  for (uint8_t i = 0; i < 2; ++i)
-    connectStrip.yieldUntilAction(connectStrip.actionsSize());
-
-  // blow our load of glitter (steer airpressure vales)
+  connectStrip.addAction(actWait500); // blow our load of glitter (steer airpressure vales)
 
   static bool blownOurGrafitti = false;
   if (!blownOurGrafitti) {
     digitalWrite(OUT_CH1, HIGH);
-    connectStrip.yieldUntilAction(actWait500);
+    connectStrip.yieldUntilAction(actStrip1);
     digitalWrite(OUT_CH2, HIGH);
     digitalWrite(OUT_CH1, LOW);
     connectStrip.yieldUntilAction(actWait500);
     digitalWrite(OUT_CH2, LOW);
     blownOurGrafitti = true;
   }
+
+
+  // let the actions play out, repeat 5 times
+  for (uint8_t i = 0; i < 2; ++i)
+    connectStrip.yieldUntilAction(connectStrip.actionsSize());
+
+
 }
+
+void clearLeds(){
+  // clear led controllers, needed as led strip starts with white color
+  ch1->clearLeds(NUM_LEDS_CH1);
+  ch2->clearLeds(NUM_LEDS_CH2);
+  ch3->clearLeds(NUM_LEDS_CH3);
+  ch4->clearLeds(NUM_LEDS_CH4);
+  FastLED.show();
+}
+
 
 void setup() {
   delay(100); // allow to setup
@@ -266,11 +276,7 @@ void setup() {
   pinMode(OUT_LED, OUTPUT);
 
   // clear led controllers, needed as led strip starts with white color
-  ch1->clearLeds(NUM_LEDS_CH1);
-  ch2->clearLeds(NUM_LEDS_CH2);
-  ch3->clearLeds(NUM_LEDS_CH3);
-  ch4->clearLeds(NUM_LEDS_CH4);
-  FastLED.show();
+  clearLeds();
 }
 
 
@@ -299,18 +305,15 @@ void loop() {
   }
 
   FastLED_Action::loop();
-  if (!programRunning ) {
-  //if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2) && !programRunning) {
+  //if (!programRunning ) {
+  if (digitalRead(INPUT_CH1) && digitalRead(INPUT_CH2) && !programRunning) {
     programRunning = true;
     FastLED_Action::runProgram(2);
     programRunning = false;
+    clearLeds();
     programRunned = millis();
   }
 
   if (programRunned > 0 && programRunned + 120000 < millis())
     programRunned = 0; // restart!
 }
-
-
-
-
